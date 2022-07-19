@@ -1,4 +1,4 @@
-# Blink usando temporizadores
+# Fade LED com sinal PWM
 
 Autora: Lesly Montúfar
 
