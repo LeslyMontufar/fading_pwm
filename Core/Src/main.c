@@ -91,6 +91,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  HAL_DBGMCU_EnableDBGSleepMode();
   app_init();
   /* USER CODE END 2 */
 

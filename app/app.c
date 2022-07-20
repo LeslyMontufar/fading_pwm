@@ -14,12 +14,8 @@
 
 #define APP_DEBOUNCING_TIME_MS 	50
 
-static uint16_t percent_fade = 100;
+static uint16_t percent_fade = 0;
 bool app_started = false;
-
-
-extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
 
 void app_led_fade_percent(uint16_t percent){
 	hw_set_duty(percent);
@@ -29,14 +25,13 @@ void app_button_interrupt(void){
 	if(!app_started)
 		return;
 
-	__HAL_TIM_SET_COUNTER(&htim2, 0);
-		hw_timer_start(&htim2);
+	hw_init_debouncing_timer();
 
-
-	if(percent_fade==100)
-		percent_fade = 0;
-	else
+	if(percent_fade!=100)
 		percent_fade += 10;
+	else
+		percent_fade = 0;
+
 	app_led_fade_percent(percent_fade);
 }
 
@@ -44,9 +39,9 @@ void app_init(void){
 	app_started = true;
 	hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
 	app_led_fade_percent(percent_fade);
-	hw_timer_start(&htim1);
+	hw_pwm_start();
 }
 
 void app_loop(void){
-
+	hw_cpu_sleep();
 }

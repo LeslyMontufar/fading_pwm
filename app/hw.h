@@ -8,6 +8,8 @@
 #ifndef HW_H_
 #define HW_H_
 
+void hw_init_debouncing_timer(void);
+void hw_pwm_start(void);
 void hw_timer_start(TIM_HandleTypeDef *htim);
 void hw_set_duty(uint16_t duty);
 void hw_set_debouncing_timer(uint16_t time_ms);

@@ -17,19 +17,26 @@
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 
-#define PWM_HTIM ((TIM_HandleTypeDef*)&htim1)
 #define PWM_CHN1 TIM_CHANNEL_1
-#define DEBOUNCING_HTIM ((TIM_HandleTypeDef*)&htim2)
+
+void hw_init_debouncing_timer(void){
+	__HAL_TIM_SET_COUNTER(&htim2, 0);
+	hw_timer_start(&htim2);
+}
 
 void hw_timer_start(TIM_HandleTypeDef *htim) {
 	HAL_TIM_Base_Start_IT(htim);
+}
+
+void hw_pwm_start(void){
+	HAL_TIM_PWM_Start(&htim1, PWM_CHN1);
 }
 
 // duty é uma porcentagem
 void hw_set_duty(uint16_t duty) {
 	uint16_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1)+1;
 	uint16_t CCR = duty*arr/100;
-	__HAL_TIM_SET_COMPARE(PWM_HTIM,PWM_CHN1, CCR-1*(CCR>0));
+	__HAL_TIM_SET_COMPARE(&htim1,PWM_CHN1, CCR-1*(CCR>0));
 }
 
 void hw_set_debouncing_timer(uint16_t time_ms) {
