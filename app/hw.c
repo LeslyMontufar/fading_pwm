@@ -17,22 +17,24 @@
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 
-#define PWM_HTIM (TIM_HandleTypeDef) htim1
-#define DEBOUNCING_HTIM (TIM_HandleTypeDef) htim2
+#define PWM_HTIM ((TIM_HandleTypeDef*)&htim1)
+#define PWM_CHN1 TIM_CHANNEL_1
+#define DEBOUNCING_HTIM ((TIM_HandleTypeDef*)&htim2)
 
-void hw_htim_start(TIM_HandleTypeDef *htim) {
+void hw_timer_start(TIM_HandleTypeDef *htim) {
 	HAL_TIM_Base_Start_IT(htim);
 }
 
+// duty é uma porcentagem
 void hw_set_duty(uint16_t duty) {
 	uint16_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1)+1;
-	uint16_t CCR = duty*arr/100 - 1;
-	__HAL_TIM_SET_COMPARE(PWM_HTIM,PWM_CHN1, CCR);
+	uint16_t CCR = duty*arr/100;
+	__HAL_TIM_SET_COMPARE(PWM_HTIM,PWM_CHN1, CCR-1*(CCR>0));
 }
 
 void hw_set_debouncing_timer(uint16_t time_ms) {
 	uint16_t arr = (CLKINT*time_ms/1000)-1;
-	__HAL_TIM_SET_AUTORELOAD(&htim2, arr); // debouncing delay
+	__HAL_TIM_SET_AUTORELOAD(&htim2, arr);
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
 }
 
@@ -40,12 +42,12 @@ void hw_set_debouncing_timer(uint16_t time_ms) {
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim == &htim1)	{
-		hw_led_toggle();
 		__HAL_TIM_SET_COUNTER(&htim1, 0);
 	}
 	else if(htim == &htim2)	{
+		__HAL_TIM_SET_COUNTER(&htim2, 0);
 		HAL_TIM_Base_Stop_IT(&htim2);
-		HAL_NVIC_EnableIRQ(EXTI0_IRQn); // Reativa a interrupção do botão
+		HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 	}
 }
 
@@ -64,15 +66,6 @@ bool hw_button_state_get(void){
 		return true;
 	else
 		return false;
-}
-
-void hw_led_toggle(void){
-	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-}
-
-void hw_led_state_set(bool state){
-	GPIO_PinState led_state = state ? GPIO_PIN_RESET : GPIO_PIN_SET;
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, led_state);
 }
 
 void hw_delay_ms(uint32_t time_ms){
