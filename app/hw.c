@@ -12,21 +12,27 @@
 #include "app.h"
 #include "hw.h"
 
-#define CLKINT 2000
+//#define CLKINT 2000
+#define CLKINT 72000000/htim2.Instance->PSC
 
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 
 #define PWM_CHN1 TIM_CHANNEL_1
 
-//uint16_t hw_time_button_pressed(){
-//	while(hw_button_state_get()){}
-//	return htim2->Instance->CNT *1/CLKINT*1000
-//}
+volatile uint32_t hw_time_button_pressed(void){
+	while(hw_button_state_get()){}
+	return __HAL_TIM_GET_COUNTER(&htim2);//*1000/CLKINT;
+}
 
 void hw_init_debouncing_timer(void){
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
 	hw_timer_start(&htim2);
+}
+
+void hw_end_debouncing_timer(void){
+	HAL_TIM_Base_Stop_IT(&htim2);
+//	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 }
 
 void hw_timer_start(TIM_HandleTypeDef *htim) {
@@ -57,10 +63,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		__HAL_TIM_SET_COUNTER(&htim1, 0);
 	}
 	else if(htim == &htim2)	{
-//		app_led_off();
-		__HAL_TIM_SET_COUNTER(&htim2, 0);
-		HAL_TIM_Base_Stop_IT(&htim2);
-		HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+//		hw_end_debouncing_timer();
+
 	}
 }
 
@@ -68,7 +72,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == BUTTON_Pin)
 	{
-		HAL_NVIC_DisableIRQ(EXTI0_IRQn);
+//		HAL_NVIC_DisableIRQ(EXTI0_IRQn);
 		app_button_interrupt();
 	}
 }

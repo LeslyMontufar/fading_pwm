@@ -12,7 +12,7 @@
 #include "app.h"
 #include "hw.h"
 
-#define APP_DEBOUNCING_TIME_MS 		80
+#define APP_DEBOUNCING_TIME_MS 		100
 #define BUTTON_PRESSED_LED_OFF_TIME	3000
 
 static uint16_t percent_fade = 0;
@@ -24,28 +24,33 @@ void app_led_fade_percent(uint16_t percent){
 
 void app_led_off(void){
 	percent_fade = 0;
-	app_led_fade_percent(100-percent_fade);
+	app_led_fade_percent(percent_fade);
 }
 
 void app_button_interrupt(void){
 	if(!app_started)
 		return;
-
 	hw_init_debouncing_timer();
 
 	percent_fade += 10;
 	if(percent_fade==110)
 		percent_fade = 0;
 	app_led_fade_percent(percent_fade);
+
+	volatile bool condicao = (hw_time_button_pressed()>=BUTTON_PRESSED_LED_OFF_TIME);
+	if(condicao)
+		app_led_off();
+	else
+		hw_end_debouncing_timer();
 }
 
 void app_init(void){
 	app_started = true;
-	hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
+	hw_set_debouncing_timer(BUTTON_PRESSED_LED_OFF_TIME*1.5);
 	app_led_fade_percent(percent_fade);
 	hw_pwm_start();
 }
 
 void app_loop(void){
-	hw_cpu_sleep();
+//	hw_cpu_sleep();
 }
