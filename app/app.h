@@ -9,6 +9,7 @@
 #define APP_H_
 
 void app_led_fade_percent(uint16_t percent);
+void app_led_off(void);
 void app_button_interrupt(void);
 void app_init(void);
 void app_loop(void);

@@ -12,12 +12,17 @@
 #include "app.h"
 #include "hw.h"
 
-#define CLKINT 8000000 // PSC = 9 - 1
+#define CLKINT 2000
 
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 
 #define PWM_CHN1 TIM_CHANNEL_1
+
+//uint16_t hw_time_button_pressed(){
+//	while(hw_button_state_get()){}
+//	return htim2->Instance->CNT *1/CLKINT*1000
+//}
 
 void hw_init_debouncing_timer(void){
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
@@ -52,6 +57,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		__HAL_TIM_SET_COUNTER(&htim1, 0);
 	}
 	else if(htim == &htim2)	{
+//		app_led_off();
 		__HAL_TIM_SET_COUNTER(&htim2, 0);
 		HAL_TIM_Base_Stop_IT(&htim2);
 		HAL_NVIC_EnableIRQ(EXTI0_IRQn);
