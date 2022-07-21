@@ -2,7 +2,7 @@
  * hw.c
  * Abstrai as funções do HAL e CMSIS
  *
- *  Created on: Jun 20, 2022
+ *  Created on: July 21, 2022
  *      Author: lesly
  */
 
@@ -13,7 +13,7 @@
 #include "hw.h"
 
 //#define CLKINT 2000
-#define CLKINT 72000000/htim2.Instance->PSC
+#define CLKINT (72000000/htim2.Instance->PSC)
 
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
@@ -22,7 +22,7 @@ extern TIM_HandleTypeDef htim2;
 
 volatile uint32_t hw_time_button_pressed(void){
 	while(hw_button_state_get()){}
-	return __HAL_TIM_GET_COUNTER(&htim2);//*1000/CLKINT;
+	return ((1000*__HAL_TIM_GET_COUNTER(&htim2))*/CLKINT);
 }
 
 void hw_init_debouncing_timer(void){
@@ -63,8 +63,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		__HAL_TIM_SET_COUNTER(&htim1, 0);
 	}
 	else if(htim == &htim2)	{
-//		hw_end_debouncing_timer();
-
+		app_led_off();
+		hw_end_debouncing_timer();
 	}
 }
 

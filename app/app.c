@@ -37,8 +37,7 @@ void app_button_interrupt(void){
 		percent_fade = 0;
 	app_led_fade_percent(percent_fade);
 
-	volatile bool condicao = (hw_time_button_pressed()>=BUTTON_PRESSED_LED_OFF_TIME);
-	if(condicao)
+	if(hw_time_button_pressed()>=BUTTON_PRESSED_LED_OFF_TIME)
 		app_led_off();
 	else
 		hw_end_debouncing_timer();
@@ -46,7 +45,7 @@ void app_button_interrupt(void){
 
 void app_init(void){
 	app_started = true;
-	hw_set_debouncing_timer(BUTTON_PRESSED_LED_OFF_TIME*1.5);
+	hw_set_debouncing_timer(BUTTON_PRESSED_LED_OFF_TIME*2);
 	app_led_fade_percent(percent_fade);
 	hw_pwm_start();
 }
