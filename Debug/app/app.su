@@ -1,5 +1,5 @@
-../app/app.c:18:6:app_led_fade_percent	16	static
-../app/app.c:22:6:app_led_off	8	static
-../app/app.c:27:6:app_button_interrupt	8	static
-../app/app.c:37:6:app_init	8	static
+../app/app.c:17:6:app_led_fade_percent	16	static
+../app/app.c:21:6:app_led_off	8	static
+../app/app.c:26:6:app_button_interrupt	8	static
+../app/app.c:36:6:app_init	8	static
 ../app/app.c:44:6:app_loop	4	static

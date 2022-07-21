@@ -1,7 +1,6 @@
 /*
  * Lesly Montúfar
  * app.c
- * parece um pouco o arduino esse .c
  *
  *
 */
@@ -35,6 +34,7 @@ void app_button_interrupt(void){
 }
 
 void app_init(void){
+	hw_led_state_set(true);
 	app_started = true;
 	hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
 	app_led_fade_percent(percent_fade);
