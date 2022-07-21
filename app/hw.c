@@ -12,18 +12,20 @@
 #include "app.h"
 #include "hw.h"
 
-//#define CLKINT 2000
-#define CLKINT (72000000/htim2.Instance->PSC)
+#define CLKINT 			(72000000/htim2.Instance->PSC) //2000
 
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 
 #define PWM_CHN1 TIM_CHANNEL_1
 
-volatile uint32_t hw_time_button_pressed(void){
-	while(hw_button_state_get()){}
-	return ((1000*__HAL_TIM_GET_COUNTER(&htim2))*/CLKINT);
-}
+typedef enum{
+	MENOR_TIME_DEBOUNCING = 0,
+	MAIOR_TIME_DEBOUCING,
+	MAIOR_BUTTON_LED_OFF
+} Mode_Time;
+
+static Mode_Time flag = MENOR_TIME_DEBOUNCING;
 
 void hw_init_debouncing_timer(void){
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
@@ -32,7 +34,13 @@ void hw_init_debouncing_timer(void){
 
 void hw_end_debouncing_timer(void){
 	HAL_TIM_Base_Stop_IT(&htim2);
-//	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+}
+
+void hw_set_debouncing_timer(uint16_t time_ms) {
+	uint16_t arr = (CLKINT*time_ms/1000)-1;
+	__HAL_TIM_SET_AUTORELOAD(&htim2, arr);
+	__HAL_TIM_SET_COUNTER(&htim2, 0);
 }
 
 void hw_timer_start(TIM_HandleTypeDef *htim) {
@@ -43,37 +51,55 @@ void hw_pwm_start(void){
 	HAL_TIM_PWM_Start(&htim1, PWM_CHN1);
 }
 
-// duty é uma porcentagem
 void hw_set_duty(uint16_t duty) {
 	uint16_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1)+1;
 	uint16_t CCR = duty*arr/100;
 	__HAL_TIM_SET_COMPARE(&htim1,PWM_CHN1, CCR-1*(CCR>0));
 }
 
-void hw_set_debouncing_timer(uint16_t time_ms) {
-	uint16_t arr = (CLKINT*time_ms/1000)-1;
-	__HAL_TIM_SET_AUTORELOAD(&htim2, arr);
-	__HAL_TIM_SET_COUNTER(&htim2, 0);
-}
-
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if(htim == &htim1)	{
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if(htim == &htim1) {
 		__HAL_TIM_SET_COUNTER(&htim1, 0);
 	}
 	else if(htim == &htim2)	{
-		app_led_off();
-		hw_end_debouncing_timer();
+		if(flag==MAIOR_TIME_DEBOUCING){ // chegou no elapsed do 3segundos
+			app_led_off();
+			if(hw_button_state_get()) {
+				flag = MAIOR_BUTTON_LED_OFF;
+				HAL_TIM_Base_Stop_IT(&htim2);
+			}
+
+		}
+		if(hw_button_state_get() && flag==MENOR_TIME_DEBOUNCING){
+			flag = MAIOR_TIME_DEBOUCING;
+			hw_set_debouncing_timer(BUTTON_PRESSED_LED_OFF_TIME-APP_DEBOUNCING_TIME_MS);
+		}else{
+			hw_end_debouncing_timer();
+		}
 	}
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if(GPIO_Pin == BUTTON_Pin)
-	{
-//		HAL_NVIC_DisableIRQ(EXTI0_IRQn);
-		app_button_interrupt();
+//volatile uint32_t hw_get_timer_time_ms(void){
+//	return (1000*__HAL_TIM_GET_COUNTER(&htim))/CLKINT;
+//}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if(GPIO_Pin == BUTTON_Pin) {
+		if(hw_button_state_get()){ // rising
+			if(flag==MAIOR_TIME_DEBOUCING){
+				hw_end_debouncing_timer();
+				flag = MENOR_TIME_DEBOUNCING;
+			}else if(flag==MAIOR_BUTTON_LED_OFF){
+				flag = MENOR_TIME_DEBOUNCING;
+				HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+			}
+		} else { //falling
+			hw_init_debouncing_timer();
+			app_button_interrupt();
+			HAL_NVIC_DisableIRQ(EXTI0_IRQn);
+		}
+
+
 	}
 }
 

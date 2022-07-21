@@ -8,7 +8,6 @@
 #ifndef HW_H_
 #define HW_H_
 
-volatile uint32_t hw_time_button_pressed(void);
 void hw_init_debouncing_timer(void);
 void hw_end_debouncing_timer(void);
 void hw_pwm_start(void);

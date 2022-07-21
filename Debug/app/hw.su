@@ -1,0 +1,12 @@
+../app/hw.c:30:6:hw_init_debouncing_timer	8	static
+../app/hw.c:35:6:hw_end_debouncing_timer	8	static
+../app/hw.c:40:6:hw_set_debouncing_timer	24	static
+../app/hw.c:46:6:hw_timer_start	16	static
+../app/hw.c:50:6:hw_pwm_start	8	static
+../app/hw.c:54:6:hw_set_duty	24	static
+../app/hw.c:60:6:HAL_TIM_PeriodElapsedCallback	16	static
+../app/hw.c:86:6:HAL_GPIO_EXTI_Callback	16	static
+../app/hw.c:106:6:hw_button_state_get	16	static
+../app/hw.c:114:6:hw_delay_ms	16	static
+../app/hw.c:118:6:hw_cpu_sleep	4	static,ignoring_inline_asm
+../app/hw.c:122:10:hw_tick_ms_get	8	static
