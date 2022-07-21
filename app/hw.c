@@ -63,28 +63,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		__HAL_TIM_SET_COUNTER(&htim1, 0);
 	}
 	else if(htim == &htim2)	{
-		if(flag == RISING_DEBOUCING){
+		if(flag == RISING_DEBOUCING || hw_button_state_get()==false){
+			hw_led_state_set(true);
 			hw_end_debouncing_timer();
+			hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
 			flag = MENOR_TIME_DEBOUNCING;
 		}
 		else if(flag==MENOR_TIME_DEBOUNCING){
-			if(hw_button_state_get()){
-				flag = MAIOR_TIME_DEBOUCING;
-				hw_end_debouncing_timer();
-				hw_set_debouncing_timer(BUTTON_PRESSED_LED_OFF_TIME-APP_DEBOUNCING_TIME_MS);
-				hw_init_debouncing_timer();
-			}else{
-				hw_end_debouncing_timer(); // chega aqui sim
-			}
+			flag = MAIOR_TIME_DEBOUCING;
+			hw_set_debouncing_timer(BUTTON_PRESSED_LED_OFF_TIME-APP_DEBOUNCING_TIME_MS);
 		}
 		else if(flag==MAIOR_TIME_DEBOUCING){ // chegou no elapsed do 3segundos
 			app_led_off();
-			if(hw_button_state_get()){ //desnecessario
-				flag = MAIOR_BUTTON_LED_OFF;
-				HAL_TIM_Base_Stop_IT(&htim2);
-			}else{
-				hw_end_debouncing_timer();
-			}
+			flag = MAIOR_BUTTON_LED_OFF;
 		}
 	}
 }
@@ -93,18 +84,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if(GPIO_Pin == BUTTON_Pin) {
 		if(hw_button_state_get()){ // rising
 			hw_led_state_set(true);
-			if(flag == MENOR_TIME_DEBOUNCING){
-				hw_init_debouncing_timer();
-				flag = RISING_DEBOUCING;
-			} else if(flag==MAIOR_TIME_DEBOUCING){
-				hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
-				hw_init_debouncing_timer();
-				flag = RISING_DEBOUCING;
-			}else if(flag==MAIOR_BUTTON_LED_OFF){
-				hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
-				hw_init_debouncing_timer();
-				flag = RISING_DEBOUCING;
-			}
+			hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
+			hw_init_debouncing_timer();
+			flag = RISING_DEBOUCING;
 		} else { //falling
 			hw_led_state_set(false);
 			hw_init_debouncing_timer();

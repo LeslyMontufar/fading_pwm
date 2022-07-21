@@ -8,7 +8,7 @@
 #ifndef APP_H_
 #define APP_H_
 
-#define APP_DEBOUNCING_TIME_MS 		30
+#define APP_DEBOUNCING_TIME_MS 		50
 #define BUTTON_PRESSED_LED_OFF_TIME	3000
 
 void app_led_fade_percent(uint16_t percent);

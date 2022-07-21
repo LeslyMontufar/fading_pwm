@@ -5,7 +5,7 @@
 ../app/hw.c:51:6:hw_pwm_start	8	static
 ../app/hw.c:55:6:hw_set_duty	24	static
 ../app/hw.c:61:6:HAL_TIM_PeriodElapsedCallback	16	static
-../app/hw.c:92:6:HAL_GPIO_EXTI_Callback	16	static
-../app/hw.c:118:6:hw_led_state_set	24	static
-../app/hw.c:123:6:hw_button_state_get	16	static
-../app/hw.c:131:6:hw_cpu_sleep	4	static,ignoring_inline_asm
+../app/hw.c:83:6:HAL_GPIO_EXTI_Callback	16	static
+../app/hw.c:99:6:hw_led_state_set	24	static
+../app/hw.c:104:6:hw_button_state_get	16	static
+../app/hw.c:112:6:hw_cpu_sleep	4	static,ignoring_inline_asm
