@@ -58,7 +58,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	else if(htim == &htim2)	{
 		if(hw_button_state_get()){
 			if(cnt<=(BUTTON_PRESSED_LED_OFF_TIME/APP_DEBOUNCING_TIME_MS)){
-				hw_led_toggle();
+//				hw_led_toggle();
 				__HAL_TIM_SET_COUNTER(&htim2, 0);
 				cnt++;
 			} else{
@@ -82,14 +82,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	}
 }
 
-void hw_led_state_set(bool state){
-	GPIO_PinState led_state = state ? GPIO_PIN_RESET : GPIO_PIN_SET;
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, led_state);
-}
-
-void hw_led_toggle(void){
-	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-}
+//void hw_led_state_set(bool state){
+//	GPIO_PinState led_state = state ? GPIO_PIN_RESET : GPIO_PIN_SET;
+//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, led_state);
+//}
+//
+//void hw_led_toggle(void){
+//	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//}
 
 bool hw_button_state_get(void){
 	GPIO_PinState button_state = HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin);
