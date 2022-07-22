@@ -19,14 +19,7 @@ extern TIM_HandleTypeDef htim2;
 
 #define PWM_CHN1 TIM_CHANNEL_1
 
-typedef enum{
-	MENOR_TIME_DEBOUNCING = 0,
-	MAIOR_TIME_DEBOUCING,
-	MAIOR_BUTTON_LED_OFF,
-	RISING_DEBOUCING
-} Mode_Time;
-
-static Mode_Time flag = MENOR_TIME_DEBOUNCING;
+static uint8_t cnt = 1;
 
 void hw_init_debouncing_timer(void){
 	__HAL_TIM_SET_COUNTER(&htim2, 0);
@@ -63,36 +56,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		__HAL_TIM_SET_COUNTER(&htim1, 0);
 	}
 	else if(htim == &htim2)	{
-		if(flag == RISING_DEBOUCING || hw_button_state_get()==false){
-			hw_led_state_set(true);
+		if(hw_button_state_get()){
+			if(cnt<=(BUTTON_PRESSED_LED_OFF_TIME/APP_DEBOUNCING_TIME_MS)){
+				hw_led_toggle();
+				__HAL_TIM_SET_COUNTER(&htim2, 0);
+				cnt++;
+			} else{
+				app_led_off();
+				__HAL_TIM_SET_COUNTER(&htim2, 0);
+			}
+		}
+		else{
 			hw_end_debouncing_timer();
-			hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
-			flag = MENOR_TIME_DEBOUNCING;
 		}
-		else if(flag==MENOR_TIME_DEBOUNCING){
-			flag = MAIOR_TIME_DEBOUCING;
-			hw_set_debouncing_timer(BUTTON_PRESSED_LED_OFF_TIME-APP_DEBOUNCING_TIME_MS);
-		}
-		else if(flag==MAIOR_TIME_DEBOUCING){ // chegou no elapsed do 3segundos
-			app_led_off();
-			flag = MAIOR_BUTTON_LED_OFF;
-		}
+
 	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if(GPIO_Pin == BUTTON_Pin) {
-		if(hw_button_state_get()){ // rising
-			hw_led_state_set(true);
-			hw_set_debouncing_timer(APP_DEBOUNCING_TIME_MS);
-			hw_init_debouncing_timer();
-			flag = RISING_DEBOUCING;
-		} else { //falling
-			hw_led_state_set(false);
-			hw_init_debouncing_timer();
-			app_button_interrupt();
-			HAL_NVIC_DisableIRQ(EXTI0_IRQn);
-		}
+		cnt=1;
+		HAL_NVIC_DisableIRQ(EXTI0_IRQn);
+		app_button_interrupt();
+		hw_init_debouncing_timer();
 	}
 }
 
@@ -101,12 +87,16 @@ void hw_led_state_set(bool state){
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, led_state);
 }
 
+void hw_led_toggle(void){
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+}
+
 bool hw_button_state_get(void){
 	GPIO_PinState button_state = HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin);
 	if(button_state == GPIO_PIN_RESET)
-		return false;
-	else
 		return true;
+	else
+		return false;
 }
 
 void hw_cpu_sleep(){
